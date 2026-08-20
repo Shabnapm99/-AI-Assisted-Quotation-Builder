@@ -1,4 +1,3 @@
-import React from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'

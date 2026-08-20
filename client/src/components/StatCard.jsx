@@ -1,6 +1,4 @@
-import React from 'react'
-
-function StatCard({title,count}) {
+function StatCard({ title, count }) {
     return (
         <div
             className="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant/20 shadow-sm">

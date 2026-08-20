@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import SideBar from '../components/SideBar'
 import { HiMenu } from 'react-icons/hi'
 import Header from '../components/Header'
@@ -16,44 +15,34 @@ function DashBoard() {
     const [open, setOpen] = useState(false);
     const dispatch = useDispatch();
 
-    const getData = async () => {
-        try {
-
-            //from mongodb
-
-            let response = await axiosInstance.get('/clients');
-            if (response.status === 200) {
-                console.log("clients array:", response.data.clients);
-                dispatch(setClients(response.data.clients));
-            }
-
-        } catch (error) {
-            console.error(`Error occured : ${error.message}`);
-            toast.error('Error while fetching the date')
-        }
-    }
-
-    const getQuotes = async () => {
-        try {
-
-            //from mongodb
-
-            let response = await axiosInstance.get('/quotations');
-            if (response.status === 200) {
-                console.log("quotations array:", response?.data?.quotations);
-                dispatch(setQuotes(response?.data?.quotations));
-            }
-
-        } catch (error) {
-            console.error(`Error occured : ${error.message}`);
-            toast.error('Error while fetching the date')
-        }
-    }
-
     useEffect(() => {
+        const getData = async () => {
+            try {
+                let response = await axiosInstance.get('/clients');
+                if (response.status === 200) {
+                    dispatch(setClients(response.data.clients));
+                }
+            } catch (error) {
+                console.error(`Error occurred: ${error.message}`);
+                toast.error('Error while fetching data');
+            }
+        };
+
+        const getQuotes = async () => {
+            try {
+                let response = await axiosInstance.get('/quotations');
+                if (response.status === 200) {
+                    dispatch(setQuotes(response?.data?.quotations));
+                }
+            } catch (error) {
+                console.error(`Error occurred: ${error.message}`);
+                toast.error('Error while fetching data');
+            }
+        };
+
         getData();
         getQuotes();
-    }, [])
+    }, [dispatch]);
 
     return (
         <div className='flex min-h-screen'>

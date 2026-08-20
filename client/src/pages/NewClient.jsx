@@ -1,50 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import { validateForm } from '../utility/formValidation';
 import { axiosInstance } from '../axios/axiosInstance';
 import { useDispatch, useSelector } from 'react-redux';
-import { resetClientForm, setClients, setSelectedClient } from '../features/clientSlice';
+import { setClients, setIsEditing, setSelectedClient } from '../features/clientSlice';
 
 
 function NewClient({ onClose }) {
     let dispatch = useDispatch();
     const clients = useSelector((state) => state.client.clients);
     const isEditing = useSelector((state) => state.client.isEditing);
-    const id = useSelector((state) => state.client.uniqueId)
+    const id = useSelector((state) => state.client.uniqueId);
 
-    const [formData, setFormData] = useState({
-        name: '',
-        company: '',
-        email: '',
-        phone: '',
-        notes: ''
-    });
-
-    //Load the data to the form if it is editing. always reset form first, then fill if editing
-    useEffect(() => {
+    const [formData, setFormData] = useState(() => {
         if (isEditing && id) {
             const editingClient = clients.find((client) => client?._id === id);
             if (editingClient) {
-                setFormData({
+                return {
                     name: editingClient.name || '',
                     company: editingClient.company || '',
                     email: editingClient.email || '',
                     phone: editingClient.phone || '',
                     notes: editingClient.notes || ''
-                });
+                };
             }
-        } else {
-            // clear form when opening in add mode
-            setFormData({
-                name: '',
-                company: '',
-                email: '',
-                phone: '',
-                notes: ''
-            });
         }
-    }, [isEditing, id]);
+        return {
+            name: '',
+            company: '',
+            email: '',
+            phone: '',
+            notes: ''
+        };
+    });
 
     const handleChange = (e) => {
 
@@ -55,58 +44,58 @@ function NewClient({ onClose }) {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateForm(formData)) return;
-        addClientData();
-        console.log('Submitted Client Data:', formData);
-        onClose();
+        const success = await addClientData();
+        if (success) {
+            onClose();
+        }
     };
 
     const addClientData = async () => {
         try {
-             //Edit Client
+            // Edit Client
             if (isEditing) {
-               
                 try {
                     let response = await axiosInstance.put(`/clients/${id}`, formData);
                     if (response.status === 200) {
                         let updatedClient = response?.data?.client;
-                       dispatch(setSelectedClient(updatedClient));
-                       dispatch(resetClientForm());
-                        // dispatch(setClients(clients.map((client) => client._id === id ? updatedClient : client)));
+                        dispatch(setSelectedClient(updatedClient));
+                        dispatch(setClients(clients.map((client) => client._id === id ? updatedClient : client)));
+                        dispatch(setIsEditing({
+                            boolean: false,
+                            id: null
+                        }));
                         toast.success('Client profile edited successfully');
+                        return true;
                     }
-
                 } catch (error) {
                     console.error(`Error editing client: ${error.message}`);
-                    toast.error('Could not complete edit request');
+                    toast.error(error.response?.data?.message || 'Could not complete edit request');
+                    return false;
                 }
-
-            }
-            else {
-
-                //Add client
+            } else {
+                // Add client
                 try {
-                    let response = await axiosInstance.post('/clients', formData)
+                    let response = await axiosInstance.post('/clients', formData);
                     const newClient = response?.data?.client;
-                    console.log(newClient);
-                    dispatch(setClients([...clients, newClient]))
+                    if (newClient) {
+                        dispatch(setClients([newClient, ...clients]));
+                    }
                     toast.success('Client profile added successfully');
-
+                    return true;
                 } catch (error) {
                     console.error(`Error adding client: ${error.message}`);
-                    toast.error('Could not complete add request');
+                    toast.error(error.response?.data?.message || 'Could not complete add request');
+                    return false;
                 }
-
             }
-
-
         } catch (error) {
-            toast.error("Something went wrong: ", error.message)
+            toast.error(`Something went wrong: ${error.message}`);
+            return false;
         }
-
-    }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-inverse-surface/40 backdrop-blur-sm animate-fade-in">
@@ -120,7 +109,7 @@ function NewClient({ onClose }) {
                 <div className="flex items-center justify-between p-6 border-b border-outline-variant">
                     <div>
                         <h3 className="text-xl font-semibold text-on-surface tracking-tight">
-                           {isEditing?"Edit Client" : "Add New Client"}
+                            {isEditing ? "Edit Client" : "Add New Client"}
                         </h3>
                         <p className="text-sm text-on-surface-variant mt-0.5">
                             Fill in the details to create a new enterprise profile.

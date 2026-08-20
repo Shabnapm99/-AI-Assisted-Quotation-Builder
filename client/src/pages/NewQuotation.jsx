@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { axiosInstance } from '../axios/axiosInstance';
-import { setCurrentQuote, setQuotes } from '../features/quotationSlice';
+import { setCurrentQuote, addQuoteToList, updateQuoteInList, resetQuoteForm } from '../features/quotationSlice';
 import { MdAdd, MdExpandMore, MdOutlineSaveAs, MdOutlineSend } from 'react-icons/md';
 import { RiPsychotherapyLine } from "react-icons/ri";
 import { HiOutlineBolt } from "react-icons/hi2";
@@ -15,7 +15,6 @@ function NewQuotation() {
   const navigate = useNavigate();
 
   const clients = useSelector(state => state.client.clients);
-  const quotes = useSelector(state => state.quote.quotes);
   const isEditing = useSelector(state => state.quote.isEditing);
   const id = useSelector(state => state.quote.uniqueId);
 
@@ -183,8 +182,13 @@ function NewQuotation() {
 
       await Promise.all(
         newItems.map(item => {
-          const { _id, isNew, ...itemData } = item;//destructure out _id and isNew before sending
-          return axiosInstance.post(`/quotations/${quotationId}/items`, itemData)
+          const itemData = {
+            title: item.title,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price
+          };
+          return axiosInstance.post(`/quotations/${quotationId}/items`, itemData);
         })
       );
 
@@ -193,13 +197,14 @@ function NewQuotation() {
 
       await Promise.all(
         existingItems.map(item => {
-          const { isNew, ...itemData } = item;
-          return axiosInstance.put(`/quotations/${quotationId}/items/${item._id}`,
-            itemData
-          )
-        }
-
-        )
+          const itemData = {
+            title: item.title,
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unit_price
+          };
+          return axiosInstance.put(`/quotations/${quotationId}/items/${item._id}`, itemData);
+        })
       );
 
       // ITEMS - DELETE REMOVED
@@ -209,49 +214,60 @@ function NewQuotation() {
         )
       );
 
-      toast.success(isEditing ? 'Quotation updated' : 'Quotation created');
+      // Fetch the updated populated quote to sync Redux store
+      const finalQuoteRes = await axiosInstance.get(`/quotations/${quotationId}`);
+      const savedQuote = finalQuoteRes?.data?.quote;
+      if (savedQuote) {
+        if (isEditing) {
+          dispatch(updateQuoteInList(savedQuote));
+        } else {
+          dispatch(addQuoteToList(savedQuote));
+        }
+        dispatch(setCurrentQuote(savedQuote));
+      }
+      dispatch(resetQuoteForm());
 
+      toast.success(isEditing ? 'Quotation updated' : 'Quotation created');
       navigate(`/dashboard/quotes/${quotationId}`);
 
     } catch (err) {
       console.error(err);
-      toast.error(`Save failed due to :${err.message}`);
+      toast.error(`Save failed due to: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  //Generate AI draft
-
+  // Generate AI draft
   const generateAI = async () => {
-    if (!requirement) return toast.error("Please type the requirement")
+    if (!requirement) return toast.error("Please type the requirement");
     try {
       setAiDraftLoading(true);
-      let response = await axiosInstance.post('/ai/draft', { requirement })
-      console.log(response?.data?.suggested_items);
-      // setItems(response?.data?.suggested_items);
-      //every item should have a unique id to work edit and delete perfectly
+      let response = await axiosInstance.post('/ai/draft', { requirement });
+      const suggested = response?.data?.suggested_items || [];
+      
       setItems(
-        response?.data?.suggested_items.map(item => ({
-          ...item,
-          _id: Date.now() + Math.random(),
-          isNew: true,
-          total: item.quantity * item.unit_price
-        }))
+        suggested.map(item => {
+          const qty = Number(item.quantity) || 1;
+          const price = item.unit_price != null ? Number(item.unit_price) : 0;
+          return {
+            ...item,
+            _id: Date.now() + Math.random(),
+            isNew: true,
+            quantity: qty,
+            unit_price: price,
+            total: qty * price
+          };
+        })
       );
-      // setFormData({ title: response?.data?.project_type });
+
       setFormData(prev => ({
         ...prev,
-        title: response?.data?.project_type
+        title: response?.data?.project_type || prev.title
       }));
-      setSummary(response?.data?.summary);
-      setQuestions(response?.data?.questions_to_ask_client);
+      setSummary(response?.data?.summary || '');
+      setQuestions(response?.data?.questions_to_ask_client || []);
       setRequirement('');
-      console.log("NEW ITEMS");
-      console.log(items.filter(i => i.isNew));
-
-      console.log("EXISTING ITEMS");
-      console.log(items.filter(i => !i.isNew));
 
     } catch (error) {
       console.error(error);
@@ -259,7 +275,7 @@ function NewQuotation() {
     } finally {
       setAiDraftLoading(false);
     }
-  }
+  };
 
   return (
     <main className="px-10 min-h-screen">

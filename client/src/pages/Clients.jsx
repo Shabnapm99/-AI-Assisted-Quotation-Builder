@@ -1,20 +1,22 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { FiUserPlus } from "react-icons/fi";
 import DataTable from '../components/DataTable';
-import StatCard from '../components/StatCard';
 import { useDispatch, useSelector } from 'react-redux';
 import StatSection from '../components/StatSection';
 import NewClient from './NewClient';
-import { resetClientForm } from '../features/clientSlice';
+import { setIsEditing } from '../features/clientSlice';
 
 function Clients() {
-    
+
     const dispatch = useDispatch();
     const clients = useSelector((state) => state.client.clients);
     const [showAddModal, setShowModal] = useState(false);
     // always reset editing state when modal closes
     const handleCloseModal = () => {
-        dispatch(resetClientForm());
+        dispatch(setIsEditing({
+            boolean: false,
+            id: null
+        }))
         setShowModal(false);
     };
 

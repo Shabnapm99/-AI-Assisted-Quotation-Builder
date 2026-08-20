@@ -66,36 +66,39 @@ export const addClient = async (req, res) => {
 }
 
 //get all clients
-
 export const getClients = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-        let clientsList = await ClientModel.find({}).select('-__v')
+        let clientsList = await ClientModel.find({ createdBy: req.user._id })
+            .select('-__v')
             .populate("createdBy", "email")
             .sort({ createdAt: -1 });
-        res.status(200).json({ clients: clientsList })
+        res.status(200).json({ clients: clientsList });
 
     } catch (error) {
         console.log("Something went wrong:", error.message);
         res.status(500).json({
             message: "Internal server Error",
             error: error.message
-
-        })
+        });
     }
-
-}
+};
 
 //Get one client
-
 export const getAClient = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-        let client = await ClientModel.findById(req.params.id)
+        let client = await ClientModel.findOne({ _id: req.params.id, createdBy: req.user._id })
             .select('-__v')
             .populate('createdBy', 'email');
         if (!client) {
-            return res.status(404).json({ message: "Client not found" })
+            return res.status(404).json({ message: "Client not found" });
         }
         res.status(200).json({ client });
 
@@ -104,32 +107,39 @@ export const getAClient = async (req, res) => {
         res.status(500).json({
             message: "Internal server Error",
             error: error.message
-
-        })
+        });
     }
-}
+};
 
 //Update Client
-
 export const updateClient = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
 
-        let updatedClient = await ClientModel.findByIdAndUpdate({ _id: req.params.id, user: req.user._id }, req.body, { returnDocument: 'after' })
-            .select('-__v');
+        let updatedClient = await ClientModel.findOneAndUpdate(
+            { _id: req.params.id, createdBy: req.user._id },
+            req.body,
+            { returnDocument: 'after', runValidators: true }
+        ).select('-__v');
+
+        if (!updatedClient) {
+            return res.status(404).json({ message: "Client not found or not authorized" });
+        }
+
         res.status(200).json({
             message: "Client Data updated succesfully",
             client: updatedClient
-        })
+        });
     } catch (error) {
         console.log("Something went wrong:", error.message);
         res.status(500).json({
             message: "Internal server Error",
             error: error.message
-
-        })
+        });
     }
-
-}
+};
 
 //Delete a Client
 

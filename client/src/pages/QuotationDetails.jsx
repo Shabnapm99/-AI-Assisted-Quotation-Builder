@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom';
 import { IoMdDownload } from "react-icons/io";
 import { CiEdit } from "react-icons/ci";
@@ -8,7 +8,7 @@ import { IoCallOutline, IoPersonOutline } from "react-icons/io5";
 import { MdOutlineMail } from "react-icons/md";
 import { axiosInstance } from '../axios/axiosInstance';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeQuote, setCurrentQuote, setIsEditing } from '../features/quotationSlice';
+import { clearCurrentQuote, removeQuote, setCurrentQuote, setIsEditing, updateQuoteInList } from '../features/quotationSlice';
 import QuoteItemsTable from '../components/QuoteItemsTable';
 import { toast } from 'react-toastify';
 import { FiArrowLeft } from 'react-icons/fi';
@@ -21,11 +21,9 @@ function QuotationDetails() {
     const dispatch = useDispatch();
     const quote = useSelector((state) => state.quote.currentQuote);
     const [loading, setLoading] = useState(true);
-    const [status, setStatus] = useState('draft');
 
     //Print logic
     const contentToPrint = useRef(null);
-
 
     const handlePrint = useReactToPrint({
         contentRef: contentToPrint
@@ -36,7 +34,6 @@ function QuotationDetails() {
             try {
                 const res = await axiosInstance.get(`/quotations/${id}`);
                 dispatch(setCurrentQuote(res?.data?.quote));
-
             } catch (err) {
                 console.error(err.message);
             } finally {
@@ -45,7 +42,10 @@ function QuotationDetails() {
         };
 
         fetchQuote();
-    }, [id]);
+        return () => {
+            dispatch(clearCurrentQuote());
+        };
+    }, [id, dispatch]);
 
     if (loading) {
         return <div className="p-6 text-center text-on-surface-variant">Loading quotation...</div>;
@@ -54,18 +54,23 @@ function QuotationDetails() {
     if (!quote) {
         return <div className="p-6 text-error text-center" >Quotation not found</div>;
     }
-    //Delete qute item
+
+    //Delete quote item
     const handleDelete = async (itemId) => {
         try {
-            let response = await axiosInstance.delete(`/quotations/${id}/items/${itemId}`)
+            await axiosInstance.delete(`/quotations/${id}/items/${itemId}`);
             const res = await axiosInstance.get(`/quotations/${id}`);
-            dispatch(setCurrentQuote(res.data.quote));
+            const updatedQuote = res?.data?.quote;
+            if (updatedQuote) {
+                dispatch(setCurrentQuote(updatedQuote));
+                dispatch(updateQuoteInList(updatedQuote));
+            }
             toast.success('Quotation item removed successfully');
         } catch (error) {
-            toast.error('Could not complete deletion request');
-            console.log(`error occured: ${error.message}`)
+            toast.error(error.response?.data?.message || 'Could not complete deletion request');
+            console.error(`Error occurred: ${error.message}`);
         }
-    }
+    };
 
     //Delete Quotation
     const handleDeleteQuote = async () => {
@@ -75,51 +80,46 @@ function QuotationDetails() {
         try {
             let response = await axiosInstance.delete(`/quotations/${id}`);
             if (response.status === 200) {
-                dispatch(removeQuote(id))
+                dispatch(removeQuote(id));
                 toast.success('Quotation removed successfully');
                 navigate('/dashboard/quotes');
             }
         } catch (error) {
-            console.log(`error occured: ${error.message}`)
-            toast.error('Could not complete deletion request');
+            console.error(`Error occurred: ${error.message}`);
+            toast.error(error.response?.data?.message || 'Could not complete deletion request');
         }
-    }
+    };
 
     //Edit a quotation
     const handleEditQuote = async () => {
-
         try {
             navigate('/dashboard/newquote');
             dispatch(setIsEditing({
                 boolean: true,
                 id: id
-            }))
-
+            }));
         } catch (error) {
-            console.error(`Error deleting client: ${error.message}`);
+            console.error(`Error editing quotation: ${error.message}`);
             toast.error('Could not complete edit request');
         }
     };
 
     //Handle status change
     const handleStatusChange = async (newStatus) => {
-        setStatus(newStatus);
-
         try {
             let res = await axiosInstance.put(`/quotations/${id}`, { status: newStatus });
             if (res.status === 200) {
-                dispatch(setCurrentQuote({
+                const updated = {
                     ...quote,
                     status: newStatus
-                }));
-                console.log("Updated successfully:", res.data);
+                };
+                dispatch(setCurrentQuote(updated));
+                dispatch(updateQuoteInList(updated));
                 toast.success('Status updated');
-
             }
-
         } catch (error) {
             console.error("Status update failed:", error.message);
-            toast.error("Status update failed:", error.message)
+            toast.error(`Status update failed: ${error.message}`);
         }
     };
 

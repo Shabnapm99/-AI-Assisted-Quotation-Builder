@@ -1,4 +1,3 @@
-import React from 'react'
 import StatCard from './StatCard'
 import { useSelector } from 'react-redux';
 

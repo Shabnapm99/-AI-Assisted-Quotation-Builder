@@ -1,5 +1,5 @@
 import QuotationItemModel from "../models/QuotationItemModel.js";
-import QuotationModel from '../models/QuotationModel .js'
+import QuotationModel from '../models/QuotationModel.js'
 import {recalculateQuotationTotal} from "../utils/recalculateQuotationTotal.js"
 
 // Add an item to a quotation

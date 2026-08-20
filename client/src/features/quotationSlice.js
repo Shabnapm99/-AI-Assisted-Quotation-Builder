@@ -25,9 +25,23 @@ const quoteSlice = createSlice({
         removeQuote: (state, action) => {
             let quoteId = action.payload
             state.quotes = state.quotes.filter((quote) => quote._id != quoteId)
+        },
+        addQuoteToList: (state, action) => {
+            state.quotes = [action.payload, ...state.quotes];
+        },
+        updateQuoteInList: (state, action) => {
+            const updated = action.payload;
+            state.quotes = state.quotes.map((q) => q._id === updated._id ? { ...q, ...updated } : q);
+            if (state.currentQuote && state.currentQuote._id === updated._id) {
+                state.currentQuote = { ...state.currentQuote, ...updated };
+            }
+        },
+        resetQuoteForm: (state) => {
+            state.isEditing = false;
+            state.uniqueId = null;
         }
     }
 })
 
-export const { setQuotes, setCurrentQuote, clearCurrentQuote, setIsEditing, removeQuote } = quoteSlice.actions
+export const { setQuotes, setCurrentQuote, clearCurrentQuote, setIsEditing, removeQuote, addQuoteToList, updateQuoteInList, resetQuoteForm } = quoteSlice.actions
 export default quoteSlice.reducer

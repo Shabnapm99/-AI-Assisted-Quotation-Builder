@@ -1,4 +1,3 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom';
 
 function QuotesTable({ quotes }) {
@@ -40,20 +39,21 @@ function QuotesTable({ quotes }) {
                   onClick={() => navigate(`/dashboard/quotes/${quote._id}`)}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <span className="text-body-md font-semibold text-on-surface">{quote?.client?.company}</span>
+                      <span className="text-body-md font-semibold text-on-surface">{quote?.client?.company || quote?.client?.name || '—'}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-body-md text-on-surface-variant">{quote?.title}
                   </td>
-                  <td className="px-6 py-4 text-body-md text-on-surface-variant">{quote?.status}
+                  <td className="px-6 py-4 text-body-md text-on-surface-variant">
+                    <span className="capitalize">{quote?.status}</span>
                   </td>
-                  <td className="px-6 py-4 text-body-md text-on-surface-variant">{quote?.total_amount}</td>
-                  <td className="px-6 py-4 text-body-md text-on-surface-variant">{new Date(quote.createdAt).toLocaleString()}</td>
+                  <td className="px-6 py-4 text-body-md text-on-surface-variant">{quote?.total_amount} BD</td>
+                  <td className="px-6 py-4 text-body-md text-on-surface-variant">{new Date(quote.createdAt).toLocaleDateString()}</td>
                 </tr>)
               })) : (
                 <tr>
                   <td colSpan="5" className="px-6 py-12 text-center text-sm text-on-surface-variant italic">
-                    No quotes sdded yet
+                    No quotes added yet
                   </td>
                 </tr>
               )

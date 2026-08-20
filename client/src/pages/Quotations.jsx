@@ -1,5 +1,3 @@
-import React, { useEffect } from 'react'
-import DataTable from '../components/DataTable'
 import StatSection from '../components/StatSection'
 import { useSelector } from 'react-redux';
 import QuotesTable from '../components/QuotesTable';
@@ -8,13 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 function Quotations() {
 
-   const quotes = useSelector((state)=>state.quote.quotes);
+   const quotes = useSelector((state) => state.quote.quotes);
    let navigate = useNavigate();
-   useEffect(()=>{
-console.log(quotes)
-   },[])
-   console.log(quotes)
-  return (
+
+   return (
      <section className='grow overflow-y-auto p-8 bg-background'>
             <div className="max-w-container-max mx-auto space-y-8">
                 <StatSection/>

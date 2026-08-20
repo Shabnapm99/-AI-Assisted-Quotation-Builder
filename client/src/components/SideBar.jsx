@@ -1,4 +1,3 @@
-import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { HiUserGroup, HiX } from "react-icons/hi"
 import { MdDescription } from "react-icons/md"

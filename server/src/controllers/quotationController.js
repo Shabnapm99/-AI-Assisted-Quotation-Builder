@@ -1,4 +1,4 @@
-import QuotationModel from "../models/QuotationModel .js";
+import QuotationModel from "../models/QuotationModel.js";
 import ClientModel from "../models/ClientModel.js";
 import QuotationItemModel from "../models/QuotationItemModel.js";
 
@@ -15,7 +15,7 @@ export const createQuotation = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        const existingClient = await ClientModel.findById(client);
+        const existingClient = await ClientModel.findOne({ _id: client, createdBy: req.user._id });
         if (!existingClient) {
             return res.status(404).json({ message: "Client not found" });
         }
@@ -125,7 +125,13 @@ export const updateQuotation = async (req, res) => {
 
         if (title) quotation.title = title;
         if (status) quotation.status = status;
-        if (client) quotation.client = client;
+        if (client) {
+            const existingClient = await ClientModel.findOne({ _id: client, createdBy: req.user._id });
+            if (!existingClient) {
+                return res.status(404).json({ message: "Client not found" });
+            }
+            quotation.client = client;
+        }
 
         await quotation.save();
 

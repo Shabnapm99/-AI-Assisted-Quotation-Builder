@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import QuotationItemModel from "../models/QuotationItemModel.js";
-import quotationModel from "../models/QuotationModel .js";
+import quotationModel from "../models/QuotationModel.js";
 
 //recalculate and save the quotation's total_amount
 export const recalculateQuotationTotal = async (quotationId) => {

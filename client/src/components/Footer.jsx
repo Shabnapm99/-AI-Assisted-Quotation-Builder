@@ -1,5 +1,3 @@
-import React from 'react'
-
 function Footer() {
     return (
         <footer className="mt-auto py-8 px-12 border-t border-outline-variant/20 text-center">

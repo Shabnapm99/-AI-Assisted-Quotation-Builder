@@ -1,10 +1,8 @@
-import React from 'react'
 import { useState } from 'react';
 import { HiOutlineMail } from "react-icons/hi";
 import { MdLockOutline } from "react-icons/md";
 import { MdOutlineVisibility } from "react-icons/md";
 import { MdOutlineVisibilityOff } from "react-icons/md";
-import { FaLongArrowAltRight } from "react-icons/fa";
 import { FaArrowRight } from "react-icons/fa";
 import { toast } from 'react-toastify';
 import { axiosInstance } from '../axios/axiosInstance';
@@ -98,12 +96,17 @@ function Login() {
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[20px]"><MdLockOutline /></span>
                                 <input className="w-full pl-10 pr-12 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-[16px] text-[16px]
                                  text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none transition-all placeholder:text-outline/50"
-                                    id="password" name="password" placeholder="password123" required="" type="password"
+                                    id="password" name="password" placeholder="password123" required
                                     type={showPassword ? "text" : "password"}
+                                    value={password}
                                     onChange={(e) => setPassword(e.target.value)} />
-                                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors cursor-pointer" type="button">
+                                <button 
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors cursor-pointer" 
+                                    type="button"
+                                    onClick={() => setShowPassword(prev => !prev)}
+                                    aria-label={showPassword ? "Hide password" : "Show password"}>
                                     <span className="text-[20px]">
-                                        {showPassword ? <MdOutlineVisibility className='' onClick={() => setShowPassword(false)} /> : <MdOutlineVisibilityOff className='' onClick={() => setShowPassword(true)} />}
+                                        {showPassword ? <MdOutlineVisibility /> : <MdOutlineVisibilityOff />}
                                     </span>
                                 </button>
                             </div>

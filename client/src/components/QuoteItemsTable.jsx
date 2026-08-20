@@ -1,4 +1,3 @@
-import React from 'react'
 import { FaEdit } from 'react-icons/fa'
 import { MdDelete } from 'react-icons/md'
 
@@ -19,16 +18,16 @@ function QuoteItemsTable({ quoteItems, handleDelete, handleEdit }) {
                 </thead>
 
                 <tbody>
-                    {quoteItems?.map((item, index) => (
+                    {quoteItems?.map((item) => (
                         <tr key={item._id} className="border-t border-gray-300 hover:bg-surface-container-low/30 cursor-pointer">
                             <td className="px-6 py-4">
                                 <div className="font-semibold">{item.title}</div>
                                 <div className="text-sm text-gray-500">{item.description}</div>
                             </td>
                             <td className="px-6 py-4 text-center">{item.quantity}</td>
-                            <td className="px-6 py-4 text-right">{item.unit_price}BD</td>
+                            <td className="px-6 py-4 text-right">{item.unit_price != null ? `${item.unit_price} BD` : '—'}</td>
                             <td className="px-6 py-4 text-right font-medium">
-                                {item.total}BD
+                                {item.total != null ? `${item.total} BD` : '0 BD'}
                             </td>
 
                             <td className="px-6 py-4 text-right print:hidden">

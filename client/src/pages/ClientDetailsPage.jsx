@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FiArrowLeft, FiBriefcase, FiFileText, FiMail, FiPhone, FiUser, FiEdit3, FiTrash2, FiPlus } from 'react-icons/fi';
-import { removeClient, setIsEditing, setSelectedClient } from '../features/clientSlice';
+import { clearSelectedClient, removeClient, setIsEditing, setSelectedClient } from '../features/clientSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { axiosInstance } from '../axios/axiosInstance';
@@ -21,20 +21,26 @@ function ClientDetailsPage() {
     const urlParam = useParams();
     const id = urlParam.id;
 
-    const clientQuotes = quotes.filter((quote) => quote.client._id === id)
+    const clientQuotes = quotes.filter((quote) => (quote?.client?._id || quote?.client) === id);
 
-    //Fetch client details
-    const getClient = async () => {
-        try {
-            let response = await axiosInstance.get(`/clients/${id}`);
-            if (response.status === 200) {
-                dispatch(setSelectedClient(response?.data?.client))
+    useEffect(() => {
+        const getClient = async () => {
+            try {
+                let response = await axiosInstance.get(`/clients/${id}`);
+                if (response.status === 200) {
+                    dispatch(setSelectedClient(response?.data?.client));
+                }
+            } catch (error) {
+                console.error(`Error occurred: ${error.message}`);
+                toast.error('Failed to load client details');
             }
-        } catch (error) {
-            console.error(`Error occurred: ${error.message}`);
-            toast.error('Failed to load client details');
-        }
-    }
+        };
+
+        getClient();
+        return () => {
+            dispatch(clearSelectedClient());
+        };
+    }, [id, dispatch]);
 
     //Delete client
     const handleDeleteClient = async () => {
@@ -56,24 +62,21 @@ function ClientDetailsPage() {
     };
 
     //Edit client
-    const handleEditClient = async () => {
-
-        try {
-            setShowModal(true);
-            dispatch(setIsEditing({
-                boolean: true,
-                id: id
-            }))
-
-        } catch (error) {
-            console.error(`Error deleting client: ${error.message}`);
-            toast.error('Could not complete edit request');
-        } finally { navigate(`/dashboard/clients/${id}`); }
+    const handleEditClient = () => {
+        dispatch(setIsEditing({
+            boolean: true,
+            id: id
+        }));
+        setShowModal(true);
     };
 
-    useEffect(() => {
-        getClient()
-    }, [id])
+    const handleCloseModal = () => {
+        dispatch(setIsEditing({
+            boolean: false,
+            id: null
+        }));
+        setShowModal(false);
+    };
 
     return (
         <section className="grow overflow-y-auto p-8 bg-background">
@@ -193,15 +196,15 @@ function ClientDetailsPage() {
                     </div>
 
                     {/* Clients Quotations table */}
-                    
-                        <QuotesTable quotes={clientQuotes} />
-                    
+
+                    <QuotesTable quotes={clientQuotes} />
+
                 </div>
 
             </div>
             {/* Edit client modal */}
             {
-                showAddModal && <NewClient onClose={() => setShowModal(false)} />
+                showAddModal && <NewClient onClose={handleCloseModal} />
             }
         </section>
     );

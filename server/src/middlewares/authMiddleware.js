@@ -5,6 +5,7 @@ import UserModel from '../models/UserModel.js';
 dotenv.config();
 
 export const validateToken = async (req, res, next) => {
+    try {
         let token = req.cookies?.token;
         if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
             token = req.headers.authorization.split(' ')[1];

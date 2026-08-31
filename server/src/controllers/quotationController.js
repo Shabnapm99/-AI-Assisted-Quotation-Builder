@@ -53,7 +53,32 @@ export const getQuotations = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        const quotations = await QuotationModel.find({ createdBy: req.user._id })
+        const { search } = req.query;
+        let query = { createdBy: req.user._id };
+
+        if (search && search.trim() !== '') {
+            const regex = new RegExp(search.trim(), 'i');
+
+            // Find matching clients created by this user
+            const matchingClients = await ClientModel.find({
+                createdBy: req.user._id,
+                $or: [
+                    { name: { $regex: regex } },
+                    { company: { $regex: regex } },
+                    { email: { $regex: regex } }
+                ]
+            }).select('_id');
+
+            const clientIds = matchingClients.map(c => c._id);
+
+            query.$or = [
+                { title: { $regex: regex } },
+                { status: { $regex: regex } },
+                { client: { $in: clientIds } }
+            ];
+        }
+
+        const quotations = await QuotationModel.find(query)
             .populate('client', 'name company email')
             .sort({ createdAt: -1 })
             .select('-__v');

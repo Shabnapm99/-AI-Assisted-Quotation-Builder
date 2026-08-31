@@ -6,7 +6,8 @@ const quoteSlice = createSlice({
         quotes: [],
         currentQuote: null,
         isEditing: false,
-        uniqueId: null
+        uniqueId: null,
+        searchQuery: ''
     },
     reducers: {
         setQuotes: (state, action) => {
@@ -39,9 +40,12 @@ const quoteSlice = createSlice({
         resetQuoteForm: (state) => {
             state.isEditing = false;
             state.uniqueId = null;
+        },
+        setQuoteSearchQuery: (state, action) => {
+            state.searchQuery = action.payload;
         }
     }
 })
 
-export const { setQuotes, setCurrentQuote, clearCurrentQuote, setIsEditing, removeQuote, addQuoteToList, updateQuoteInList, resetQuoteForm } = quoteSlice.actions
+export const { setQuotes, setCurrentQuote, clearCurrentQuote, setIsEditing, removeQuote, addQuoteToList, updateQuoteInList, resetQuoteForm, setQuoteSearchQuery } = quoteSlice.actions
 export default quoteSlice.reducer

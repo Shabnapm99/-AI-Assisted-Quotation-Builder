@@ -72,7 +72,20 @@ export const getClients = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized" });
         }
 
-        let clientsList = await ClientModel.find({ createdBy: req.user._id })
+        const { search } = req.query;
+        let query = { createdBy: req.user._id };
+
+        if (search && search.trim() !== '') {
+            const regex = new RegExp(search.trim(), 'i');
+            query.$or = [
+                { name: { $regex: regex } },
+                { company: { $regex: regex } },
+                { email: { $regex: regex } },
+                { phone: { $regex: regex } }
+            ];
+        }
+
+        let clientsList = await ClientModel.find(query)
             .select('-__v')
             .populate("createdBy", "email")
             .sort({ createdAt: -1 });

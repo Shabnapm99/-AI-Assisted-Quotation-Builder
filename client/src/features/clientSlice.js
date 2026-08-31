@@ -6,7 +6,8 @@ const clientSlice = createSlice({
         clients: [],
         selectedClient: null,
         isEditing: false,
-        uniqueId: null
+        uniqueId: null,
+        searchQuery: ''
     },
     reducers: {
         setClients: (state, action) => {
@@ -29,9 +30,12 @@ const clientSlice = createSlice({
         resetClientForm: (state) => {
             state.isEditing = false;
             state.uniqueId = null;
+        },
+        setClientSearchQuery: (state, action) => {
+            state.searchQuery = action.payload;
         }
     }
 })
 
-export const { setClients, setSelectedClient, clearSelectedClient, setIsEditing, removeClient, resetClientForm } = clientSlice.actions
+export const { setClients, setSelectedClient, clearSelectedClient, setIsEditing, removeClient, resetClientForm, setClientSearchQuery } = clientSlice.actions
 export default clientSlice.reducer

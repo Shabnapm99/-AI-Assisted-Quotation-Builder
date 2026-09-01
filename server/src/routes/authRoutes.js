@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { login, logout, register } from "../controllers/authController.js";
+import { login, logout, register, verifyAuth } from "../controllers/authController.js";
+import { validateToken } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
 router.post('/login', login);
 router.post('/register', register);
-// router.get('/profile', validateToken, profile);
+router.get('/verify', validateToken, verifyAuth);
 router.post('/logout', logout);
 
 export default router;

@@ -13,18 +13,19 @@ function SideBar({ open, setOpen }) {
     const navigate = useNavigate();
 
     const handleLogout = async () => {
-        let response = await axiosInstance.post('/auth/logout');
-        if (response.status === 200) {
-            console.log("user loggedout successfully")
+        try {
+            await axiosInstance.post('/auth/logout');
+        } catch (error) {
+            console.error("Logout request error:", error.message);
+        } finally {
             dispatch(setAuthState({
                 isLoggedin: false,
                 authUser: null
             }));
             toast.success("Logged out successfully");
-            navigate('/')
-
+            navigate('/');
         }
-    }
+    };
 
 
     // Dynamic styling function for NavLinks

@@ -24,7 +24,9 @@ function DashBoard() {
                 }
             } catch (error) {
                 console.error(`Error occurred: ${error.message}`);
-                toast.error('Error while fetching data');
+                if (error.response?.status !== 401) {
+                    toast.error('Error while fetching data');
+                }
             }
         };
 
@@ -36,7 +38,9 @@ function DashBoard() {
                 }
             } catch (error) {
                 console.error(`Error occurred: ${error.message}`);
-                toast.error('Error while fetching data');
+                if (error.response?.status !== 401) {
+                    toast.error('Error while fetching data');
+                }
             }
         };
 

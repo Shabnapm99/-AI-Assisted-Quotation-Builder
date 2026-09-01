@@ -104,7 +104,25 @@ export const logout = async (req, res) => {
         res.status(error.status || 500).json({
             message: "Internal server Error",
             error: error.message
-
         })
     }
 }
+
+// Verify auth token / session
+export const verifyAuth = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+        res.status(200).json({
+            message: "Authenticated",
+            user: {
+                _id: req.user._id,
+                email: req.user.email
+            }
+        });
+    } catch (error) {
+        console.log("Verify auth error:", error.message);
+        res.status(401).json({ message: "Invalid or expired session" });
+    }
+};
